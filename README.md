@@ -9,7 +9,7 @@ If when you double click the file, an archive appears with a file directory and 
                   
 These methods were tested with Ubuntu 16.04 LTS and should work other similar operating systems.  The methods will likely be different between different distributions and flavours, and may be nothing alike what is above for some of the more strange distros, such as Tiny Core. 
 
-############################################  Mac  ############################################
+#############################################  Mac  #############################################
     
 All you need to do is double click on the jar file to run it. You may get an error message about the file not being safe to run. This is because Apple goes to great extremes for security which includes only allowing applications from trusted developers to be run.  This is to make sure all applications run by the user are virus free and safe.  
 
@@ -20,7 +20,7 @@ This application needs Java to run.  If you can't run it, and the above doesn't 
 
 This method is currently untested as I do not have access to a Mac based machine.                    
 
-############################################  Windows ############################################  
+###########################################  Windows ###########################################  
     
 All you need to do is double-click the jar file to run it. For aesthetic purposes I have used a wrapper to give a cute lil' icon to the jar file, and set it as an .exe file.  This is likely all meaningless to you so double-click that guy and have fun. The User Account Control Dialog may pop up to demand admin access. All you need to do is say "What the fuck, I am the administrator" and click "Yes".  Unless of course you aren't the administrator, in which case you should probably get your parents permission and have them type in their password and click the ol' yes box.         
     
