@@ -11,6 +11,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 
+/**
+* The original not-very-portable colorscheme class.  It's not as useful as my newer one
+* since I can only hold the 6 colors in the class for any scheme, as opposed to allowing for 
+* n colors, depending on the scheme.  The new version will allow for more dynamic schemes.
+*/
 public class ColorScheme {
 	
 	public static ArrayList<ColorScheme> schemes = new ArrayList<ColorScheme>();
@@ -38,6 +43,8 @@ public class ColorScheme {
 	
 	public String name;
 	
+	// Class takes in a name and 6 colors.  cn naming is ambiguous, should fix that if I'm going to
+	// hard set them to specific color types.
 	public ColorScheme(String s, MyColor c1,MyColor c2,MyColor c3,MyColor c4, MyColor c5, MyColor c6)
 	{
 		name = s;
@@ -49,6 +56,7 @@ public class ColorScheme {
 		c_font = c6;
 	}
 	
+	// If necessary loads some schemes and then fetches a specific scheme by name
 	public static ColorScheme SchemeFactory(String s)
 	{
 
@@ -74,6 +82,7 @@ public class ColorScheme {
 		return builtInSchemes.get(0);
 	}
 	
+	// Loads the my premade schemes as default.
 	public static void LoadDefaultSchemes()
 	{
 		//Right Panel, Left Panel, Accent1, Bar, Accent2,Font e2b03d 71acc1
