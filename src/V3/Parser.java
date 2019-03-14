@@ -82,6 +82,10 @@ import javax.swing.border.TitledBorder;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.text.PlainDocument;
 
+/**
+* This parser class is a bit large, but it essentially just houses all of the main components of the Exam Date
+* Lookup system.  The JFrame constructions, 
+*/
 public class Parser extends JFrame implements ActionListener, KeyListener, MouseListener, WindowListener, FocusListener
 {
 	private static HTMLSourceReader reader1 = new HTMLSourceReader(new String[] {"<td>","<td height=\"20\">"},
@@ -123,9 +127,10 @@ public class Parser extends JFrame implements ActionListener, KeyListener, Mouse
 	
 	static int simpleMode;
 	
+	// Pretty sure this is dead but don't wanna drop it until I'm ready to commit to debugging.
+	// Versions are housed separately for each os (though nothing is OS dependant, it's just neater)
 	static final String version = "EDP_V1_0_0";
 	
-	//files
 	static String Hidden_Dir = "";
 	static Path Home_Directory = Paths.get(System.getProperty("user.home"));
 	static Path Working_Directory = Paths.get("Lex Icon" + File.separator+ "Exam Date Lookup");
@@ -137,19 +142,31 @@ public class Parser extends JFrame implements ActionListener, KeyListener, Mouse
 	public static int lastWorkingDirectoriesCount = 0;
 	public static String[] lastDirectories = new String[5];
 	static Stack<File> filesUsed = new Stack<File>();
+	
 	public static void main(String[] args)
 	{
-
+		// Boot up this bad boy
+		run();
+	}
+	
+	/** Init needs to be called before parser construction since the super call in the constructor
+	* depends on a variable set in init(), which is a little annoying but not the end of the world.
+	*/
+	public static void run()
+	{
+		
 		try {
 			init();
 		} catch (IOException e1) {System.out.println("ERROR AT INIT"); e1.printStackTrace();}
+		
 		p = new Parser("Home");
-
 	}
+	
+	// Short method for getting details about whether sound is on.
 	private static void GetSoundState() throws IOException
 	{
 		BufferedReader br = null;
-		if(!soundOnDebug)
+		if(!soundOnDebug) // let's me force off sound settings while in the testing phase
 		{
 			soundOn = false;
 			return;
@@ -158,9 +175,12 @@ public class Parser extends JFrame implements ActionListener, KeyListener, Mouse
 			{
 
 				br = new BufferedReader(new FileReader(Settings_File));
+				// Read from the settings file 'til the sound setting line is found.  Split the
+				// value and read.
 				while(br.ready())
 				{
 					String line = br.readLine();
+					
 					if(line.contains("Sound"))
 					{
 						if(line.substring(line.lastIndexOf(":")+1).equalsIgnoreCase("true"))
@@ -181,9 +201,10 @@ public class Parser extends JFrame implements ActionListener, KeyListener, Mouse
 				e.printStackTrace();
 			} 
 	}
+	
 	private static boolean GetTOS() throws IOException
 	{
-		//Read from settings, i NO, show dialog, else return true.
+		//Read from settings, if NO, show dialog, else return true.
 		BufferedReader br = null;
 
 		try
@@ -219,6 +240,8 @@ public class Parser extends JFrame implements ActionListener, KeyListener, Mouse
 		JPanel jpa = new JPanel();
 		Dimension D = new Dimension(300,200);
 		JTextArea jta = new JTextArea();
+			// Pretty sure I put this in the build class
+			// TODO: replace with a build fetch.
 			jta.setText("Really, there's not much to it.  If you use this tool "
 					+ "and miss your exam, you can't blame me, or anyone else "
 					+ "for that.  That's a risk you take by using this program. "
@@ -265,7 +288,7 @@ public class Parser extends JFrame implements ActionListener, KeyListener, Mouse
 		return false;
 	}
 
-
+	// Reads from the string to fetch the last URL read by the user.
 	private static String getLastURL() throws IOException
 	{
 		//FileConfigurer.SetOwnerReadable(Settings_File, true);
@@ -286,6 +309,8 @@ public class Parser extends JFrame implements ActionListener, KeyListener, Mouse
 		return "";
 	}
 
+	// Checks when the requested URL was last updated, and compares with the current details saved at the
+	// top of the parsed information file.
 	private static long GetLastModified() throws IOException
 	{
 		File f = new File(Working_Directory + File.separator + Res_Directory + File.separator + lastURL.substring(lastURL.lastIndexOf('/')+1, lastURL.lastIndexOf('.'))+".edp");
@@ -317,9 +342,11 @@ public class Parser extends JFrame implements ActionListener, KeyListener, Mouse
 		return 0;
 	}
 
+	// Saves the settings for a file.  This allows for writing to specific files such as the parse data
 	private static void SettingsWrite(File f) throws IOException
 	{
-		// Overloads from Settings write, where the non-parameter version defaults to SETTINGS_FILE and this takes in a file
+		// Overloads from Settings write, where the non-parameter version defaults to SETTINGS_FILE and 
+		// this one takes in a specifc file
 		
 		if(f.equals(Settings_File)) // If for whatever reason, settings file is passed in by mistake
 			SettingsWrite();
@@ -337,6 +364,7 @@ public class Parser extends JFrame implements ActionListener, KeyListener, Mouse
 	
 	}
 
+	// For writing to the designated general settings file.
 	private static void SettingsWrite() throws IOException {
 		//FileConfigurer.SetOwnerWritable(Settings_File, true);
 		BufferedWriter bufWrite = new BufferedWriter(new FileWriter(Settings_File));
@@ -348,6 +376,7 @@ public class Parser extends JFrame implements ActionListener, KeyListener, Mouse
 		//FileConfigurer.SetOwnerWritable(Settings_File, false);
 	}
 	
+	// Initializes all of the important details.
 	public static void init() throws IOException {
 		
 		Build.Setup(
@@ -357,7 +386,7 @@ public class Parser extends JFrame implements ActionListener, KeyListener, Mouse
 		
 		separator = File.separator;
 		
-		
+		// Set up the file chooser
 		Color bl = new Color(0x2566FB);
 		Color pi = new Color(0xB633EF);
 		Color whi1 = new Color(0xC9B1FF);
@@ -367,22 +396,28 @@ public class Parser extends JFrame implements ActionListener, KeyListener, Mouse
 		jfc.setMultiSelectionEnabled(false);
 		FileFilter filter = new v2.FileFilter();
 		
+		// set the filter
 		jfc.setAcceptAllFileFilterUsed(false);
 		jfc.setFileFilter(filter);
 		
 		// Get the hidden files directory and then read from the file
 		String fileName = "";
 
+		// Sets the working directory, relative to the path from jfc.
 		Working_Directory = Paths.get(Build.pseudonym + File.separator+ "Exam Date Lookup");
 		
+		// Gets the hidden, general directories for storing some important details.
 		if(OS.startsWith("win"))
 			Hidden_Dir =  System.getenv("APPDATA")+separator+"Library"+separator+"Application Support"+separator+"Exam Date Lookup";
 		else if(OS.endsWith("nix")||OS.endsWith("nux"))
 			Hidden_Dir = System.getProperty("user.home")+separator+"."+Build.pseudonym;
 		else
 			Hidden_Dir = System.getProperty("user.home")+separator+".config"+separator+Build.pseudonym;
+		
+		// Stores the last directories file so that on next load we can show the previous directories used
 		File fileStream = new File(Hidden_Dir+separator+"dirs.txt");
 		System.out.println(Hidden_Dir+ " << DIR");
+		
 		if(!fileStream.exists())
 		{
 			new File(Hidden_Dir).mkdirs();
@@ -527,9 +562,10 @@ public class Parser extends JFrame implements ActionListener, KeyListener, Mouse
 				SettingsWrite();
 				MyThread t = new MyThread();
 				t.start();
+				
 				// TODO: USE KEYBINDINGS NOT KEYLISTENER
 				Object response = JOptionPane.showInputDialog(null, panelout, "", JOptionPane.PLAIN_MESSAGE,null,/*JOptionPane.QUESTION_MESSAGE, icons.GetIcons(Icons.QUESTION),*/ new String[] {"Default","Geometrix","Space","Night","Simple","Contrast"}, 0);
-				//JOptionPane.
+				
 				t.running = false;
 				//panelout.addKeyListener(
 				if(response == null)
@@ -550,9 +586,7 @@ public class Parser extends JFrame implements ActionListener, KeyListener, Mouse
 				else simpleMode = 0;
 				
 				new Parser("Loading");
-				//TODO: Set it so that Settings are stored in the first two lines of the 20xxyy-exam-schedule file and
-				//		reading the file skips over it, unless looking for the settings.
-
+				
 			} catch (IOException e)
 			{
 				e.printStackTrace();
@@ -560,6 +594,8 @@ public class Parser extends JFrame implements ActionListener, KeyListener, Mouse
 				
 	}
 
+	// TODO: Relocate this to a better organized place (to the top) 
+	// The constructor for the Parser displaying the proper JFrame window with the correct settings
 	public Parser(String string)
 	{
 		// Creates the Window to draw on
@@ -572,6 +608,8 @@ public class Parser extends JFrame implements ActionListener, KeyListener, Mouse
 		System.out.println(OS);
 		
 		String filePath = "";
+		
+		// Fetch the background image
 		try
 			{
 				String dir ="Backgrounds/";
@@ -618,6 +656,7 @@ public class Parser extends JFrame implements ActionListener, KeyListener, Mouse
 							}
 					}
 			}
+		// Get the radiospace font for the space scheme
 		InputStream is = Parser.class.getResourceAsStream("fonts/radiospace.ttf");
 		Font font = null;
 		Font defaultHeadFont = new Font("Cambria",1,14);
@@ -630,6 +669,8 @@ public class Parser extends JFrame implements ActionListener, KeyListener, Mouse
 			e.printStackTrace();
 		} 
 		System.out.println(simpleMode);
+		
+		// Simple mode just controls the theme style
 		if(simpleMode > 0) {
 			f_head = defaultHeadFont;
 			f_main = new Font("Cambria",Font.BOLD,12);
@@ -669,6 +710,7 @@ public class Parser extends JFrame implements ActionListener, KeyListener, Mouse
 			scheme = ColorScheme.SchemeFactory("Geometrix");
 		else
 			scheme = ColorScheme.SchemeFactory("Default");
+			
 		// Loading Screen Pop Up
 		if(string.equals("Loading"))
 			t = new Loading(this);
@@ -678,8 +720,11 @@ public class Parser extends JFrame implements ActionListener, KeyListener, Mouse
 		this.setResizable(false);
 		if(icons.GetIcons(Icons.ICON)!=null)
 			this.setIconImage(icons.GetIcons(Icons.ICON).getImage());
+			
+			
 		switch(string)
 		{
+			// The default selection menu for gathering input and returning information
 			case "Home":
 				
 				Dimension textDim = new Dimension(60,18);
@@ -713,7 +758,8 @@ public class Parser extends JFrame implements ActionListener, KeyListener, Mouse
 					semesterBox.setName("Semester Box");
 					semesterBox.setForeground(scheme.c_font);		
 					semesterBox.setBackground(scheme.c_left);
-				// JTextAreas
+					
+				// JTextFields
 				number = new JTextField();
 					number.setBorder(BorderFactory.createLoweredSoftBevelBorder());
 					number.setPreferredSize(textDim);
@@ -736,6 +782,7 @@ public class Parser extends JFrame implements ActionListener, KeyListener, Mouse
 					PlainDocument doc2 = (PlainDocument) section.getDocument();
 					doc2.setDocumentFilter(new SectionFilter());
 					
+				// JTextAreas
 				output = new JTextArea();
 					output.setBorder(BorderFactory.createLoweredSoftBevelBorder());
 					output.setPreferredSize(new Dimension(210,82));
@@ -802,8 +849,6 @@ public class Parser extends JFrame implements ActionListener, KeyListener, Mouse
 					sectionPan.setBorder(BorderFactory.createEmptyBorder(2, 4, 4, 4));
 					sectionPan.setBackground(scheme.c_clear);
 					
-			
-				
 				MyPanel top = new MyPanel(filePath); 
 				JPanel jp = new JPanel();
 						
@@ -1093,6 +1138,7 @@ public class Parser extends JFrame implements ActionListener, KeyListener, Mouse
 						updateThread.start();
 				break;
 				
+			// Displays the help dialog
 			case "Help":
 				this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 				
@@ -1135,6 +1181,8 @@ public class Parser extends JFrame implements ActionListener, KeyListener, Mouse
 				this.setVisible(true);
 				
 				break;
+				
+			// Displays the about dialog
 			case "About":
 				JFormattedTextField header = new JFormattedTextField("ABOUT"); 
 					header.setPreferredSize(new Dimension(260,70));
@@ -1177,6 +1225,8 @@ public class Parser extends JFrame implements ActionListener, KeyListener, Mouse
 				this.setVisible(true);
 				
 				break;
+				
+			// Displays the Terms of Service
 			case "TOS":
 				this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 				setTitle("Terms Of Service");
@@ -1205,6 +1255,8 @@ public class Parser extends JFrame implements ActionListener, KeyListener, Mouse
 				this.setLocationRelativeTo(p);
 				this.setVisible(true);
 				break;
+				
+			// Opens the Changes page
 			case "Changes":
 				try {
 				    Desktop.getDesktop().browse(new URL("https://ufvedp.000webhostapp.com").toURI());
@@ -1217,6 +1269,7 @@ public class Parser extends JFrame implements ActionListener, KeyListener, Mouse
 		
 	}
 	
+	// Construct the array of semesters based on current date.  Needs some work
 	private String[] GetSemestersArray()
 	{
 		int year = (Calendar.getInstance().get(Calendar.YEAR));
@@ -1275,34 +1328,36 @@ public class Parser extends JFrame implements ActionListener, KeyListener, Mouse
 		return arr;
 	}
 
+	// Gets the details by first checking connectivity, then checking if the sites details may be
+	// different from the saved ones, if so, update the file.  Then read the file for the exam date.
 	private static void GetModified(String url)
 	{
 		try{
 		URL site = new URL(url);
 
-        CheckConnected(site);
-        
-        URLConnection siteConnection = site.openConnection(); 
-       
-        String path = lastURL.toString();
-		path = path.substring(path.lastIndexOf("/")+1, path.lastIndexOf("."))+".edp";
-		File file = new File(Working_Directory+File.separator+Res_Directory + File.separator + path);
-		
-        System.out.println("Connected? " + connected);
-       
-        if(connected && (siteConnection.getLastModified()!=lastModified || !file.exists()))
-	    	System.out.println("MODIFIED.  UPDATING!");
-        
-        if(connected && (siteConnection.getLastModified()!=lastModified || !site.toString().equals(lastURL) || !file.exists()))
-        	{        		
-        		lastModified = siteConnection.getLastModified();
-        		lastURL = site.toString();
-        		
-        		WriteTo2(siteConnection, site);
-        		
-        		if(p!=null)
-        			p.setTitle("Home");
-        	}  
+		CheckConnected(site);
+
+		URLConnection siteConnection = site.openConnection(); 
+
+		String path = lastURL.toString();
+			path = path.substring(path.lastIndexOf("/")+1, path.lastIndexOf("."))+".edp";
+			File file = new File(Working_Directory+File.separator+Res_Directory + File.separator + path);
+
+		System.out.println("Connected? " + connected);
+
+		if(connected && (siteConnection.getLastModified()!=lastModified || !file.exists()))
+			System.out.println("MODIFIED.  UPDATING!");
+
+		if(connected && (siteConnection.getLastModified()!=lastModified || !site.toString().equals(lastURL) || !file.exists()))
+			{        		
+				lastModified = siteConnection.getLastModified();
+				lastURL = site.toString();
+
+				WriteTo2(siteConnection, site);
+
+				if(p!=null)
+					p.setTitle("Home");
+			}  
 		}catch(IOException e)
 		{
 			if(output!=null)
@@ -1462,6 +1517,7 @@ public class Parser extends JFrame implements ActionListener, KeyListener, Mouse
 		
 	}
 	
+	// The updated version.  need to remove the others safely
 	public static void WriteTo2(URLConnection siteConnection, URL site) throws IOException
 	{
 		String path = site.getPath(); // Get the Path of the URL
@@ -1564,20 +1620,22 @@ public class Parser extends JFrame implements ActionListener, KeyListener, Mouse
 		bufWrite.close();
 	}
 	
+	
 	private void FindTime(URL site) throws IOException
 	{
 		GetModified(site.toString());
 		String path;
+
 		if(!connected)
 			path = ParseSemester(semesterBox.getSelectedItem().toString());
 		else path = lastURL.toString();
+		
 		path = path.substring(path.lastIndexOf("/")+1, path.lastIndexOf("."))+".edp";
 		File file = new File(Working_Directory+separator+Res_Directory + File.separator + path);
 		System.out.println(file.getAbsolutePath()+" PATH");
+		
 		if(!file.exists())
-		{
 			file.createNewFile();
-		}
 		
 		//FileConfigurer.SetOwnerReadable(file, true);
 		
@@ -1593,6 +1651,11 @@ public class Parser extends JFrame implements ActionListener, KeyListener, Mouse
 		{
 			spaces+=" ";
 		}
+		
+		// Read through the file until either the course name is found or until the first character
+		// of the current course label comes after the first character of the one we're looking for.
+		// UFV's labelling system is not alphabetic by label, it's alphabetic by subject title.  So,
+		// Workplace Task, (TASK) comes after Women's Studies (WMNS), for example, which creates problems.
 		while(br.ready())
 			{
 				// Read Next Line
@@ -1715,6 +1778,7 @@ public class Parser extends JFrame implements ActionListener, KeyListener, Mouse
 		//FileConfigurer.SetOwnerReadable(file, false);
 	}
 
+	// Converts the semester inputs to the UFV exam date naming convention (yyyymm-exam-schedule.htm)
 	String ParseSemester(String s)
 	{
 		String month = s.substring(0, s.indexOf(" "));
@@ -1734,6 +1798,7 @@ public class Parser extends JFrame implements ActionListener, KeyListener, Mouse
 		return year+month+"-exam-schedule.htm";
 	}
 	
+	// Converts a month to an int string
 	private String getMonth(String dt)
 	{
 		if(dt.toLowerCase().contains("jan"))
@@ -1761,6 +1826,7 @@ public class Parser extends JFrame implements ActionListener, KeyListener, Mouse
 		else return "12";
 	}
 
+	// Popup menu for future implementations
 	JPopupMenu pop;
 	
 	@Override
@@ -1797,6 +1863,7 @@ public class Parser extends JFrame implements ActionListener, KeyListener, Mouse
 		
 	}
 	
+	// Checks the connectivity
 	public static boolean CheckConnected(URL url)
 	{
 		try
@@ -1817,6 +1884,9 @@ public class Parser extends JFrame implements ActionListener, KeyListener, Mouse
 	}
 
 	public String lastName = "";
+	
+	// Mouse listener for the text-speech accessibility implementation
+	// In the future I want to thread this as it currently gives a delay
 	@Override
 	public void mouseEntered(MouseEvent arg0)
 	{
@@ -1857,6 +1927,7 @@ public class Parser extends JFrame implements ActionListener, KeyListener, Mouse
 		
 	}
 	
+	
 	@Override
 	public void keyPressed(KeyEvent arg0)
 	{
@@ -1880,7 +1951,7 @@ public class Parser extends JFrame implements ActionListener, KeyListener, Mouse
 	{
 		if(arg0.getKeyCode()==9)
 		if(soundOn)
-		voice.speak(this.getFocusOwner().getName());
+			voice.speak(this.getFocusOwner().getName());
 		
 		Thread t;
 		if(arg0.getKeyCode() == 16)
@@ -1986,7 +2057,6 @@ public class Parser extends JFrame implements ActionListener, KeyListener, Mouse
 	}
 	
 	
-
 	private String[] FindSectionsForNoSection(URL site) throws IOException {
 		GetModified(site.toString());
 		String path = lastURL.toString();
@@ -2048,6 +2118,7 @@ public class Parser extends JFrame implements ActionListener, KeyListener, Mouse
 		return text.split(",");
 	}
 
+	// Used for safe closing
 	private void CleanUp()
 	{
 		System.out.println("Clean Up Started");
@@ -2091,6 +2162,7 @@ public class Parser extends JFrame implements ActionListener, KeyListener, Mouse
 		
 	}
 
+	// Fetches the URL from the inputs
 	private URL GetURL()
 	{
 		try
@@ -2165,6 +2237,8 @@ public class Parser extends JFrame implements ActionListener, KeyListener, Mouse
 		
 	}
 	
+	// Overrides the JFrame dispose for control on window closing for each type of window and
+	// for safe closing with CleanUp
 	@Override
 	public void dispose()
 	{
@@ -2179,6 +2253,8 @@ public class Parser extends JFrame implements ActionListener, KeyListener, Mouse
 				super.dispose();
 			}
 	}
+	
+	// When the user chooses to use tab to navigate and the sound is on, we need to alert them to their selection.
 	@Override
 	public void focusGained(FocusEvent arg0) {
 		Thread t;
