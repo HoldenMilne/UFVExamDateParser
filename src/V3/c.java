@@ -9,22 +9,35 @@ import java.net.URISyntaxException;
 
 import javax.swing.JDialog;
 
+/**
+* Just a small class for fetching the latest version if an update is needed.
+* I should /probably/ rename it...
+*/
 class c implements ActionListener {
 	static URI nextVersionUri;
 	static JDialog dia;
+	
+	/**
+	* @params t: the dialog that houses the update notice so that we can close this is the user
+	* cancels or downloads the update.
+	*/
 	public c(JDialog t)
 	{
 		dia = t;
 	}
 	
+	// Get's the OS as a string used in file naming
 	static String GetOS()
 	{
 		if(Parser.OS.toLowerCase().contains("win"))
 		{
-			return "win";
+			return "Windows";
 		}else if(Parser.OS.toLowerCase().contains("nix")||Parser.OS.toLowerCase().contains("nux"))
 		{
-			return "uni";
+			return "Linux";
+		}else if(Parser.OS.toLowerCase().contains("mac"))
+		{
+			return "Mac";
 		}else
 		{
 			return "full";
@@ -37,6 +50,7 @@ class c implements ActionListener {
 		switch(arg0.getActionCommand())
 		{
 			case "Update!":
+			// If we found an update, fetch the package as a zip stored on my package site.
 			try {
 				nextVersionUri =  new URI("http://ufvedp.000webhostapp.com/latest_"+GetOS()+".zip");
 				open(nextVersionUri);
