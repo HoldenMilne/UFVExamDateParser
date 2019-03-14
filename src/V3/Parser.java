@@ -1,10 +1,10 @@
 package v3;
 /**
- * @Author Lex Icon
- * If you're reading this, you probably shouldn't be.  I know my code looks like shit don't judge me.
- * 
+ * @Author Holden Milne
+ *
  * This version attempts to implement audio assisted navigation.  Adds mouse listeners to all items.  Plays a
- * sound bit for those.  Also updates read access on new files (background.jpg)
+ * sound bit for those.  Also updates read access on new files (background.jpg).  It also begins process on
+ * saving exam information to a file for easier access later, possible sent through email.
  */
 
 import java.awt.BorderLayout;
